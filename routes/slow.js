@@ -9,7 +9,8 @@ router.route('/')
   .get((req, res, next) => {
     return sleep(5000)
       .then(_ => res.render('api/index', (err, html) => {
-        res.send(html);
+        res.cacheIt(`${req.originalUrl}`, html);
+        res.send(html + `<p>${res.requestCounter}</p>`);
       }));
   });
 

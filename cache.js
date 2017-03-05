@@ -7,12 +7,14 @@ module.exports = function cache(req, res, next) {
     if (err) throw err;
 
     if (data !== null) {
-      res.send(data);
-    } else {
-      res.render('api/index', (err, html) => {
-        client.setex(`${req.originalUrl}`, 60, `${html}`);
-      });
-      next();
+      return res.send(data + `<p>${res.requestCounter}</p>`);
     }
+
+    res.cacheIt = (url, html) => {
+      client.setex(url, 60, html);
+    };
+
+    return next();
   });
 };
+

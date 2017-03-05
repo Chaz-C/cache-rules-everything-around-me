@@ -16,11 +16,24 @@ app.engine('.hbs', handlebars({extname: '.hbs', defaultLayout: 'main'}));
 app.set('view engine', '.hbs');
 
 app.use(bodyParser.json());
-// server.use(creamCache.init()); /* student implements this */
-app.use('/slow', cache, slow);
+
+app.use((req, res, next) => {
+  client.incr(`${req.originalUrl}counter`);
+  client.get(`${req.originalUrl}counter`, (err, data) => {
+    res.requestCounter = data;
+    });
+  next();
+});
+
+app.use(cache);
+
+app.use('/slow', slow);
 
 app.get('/', (req, res) => {
-  res.render('index');
+  res.render('index', (err, html) => {
+    res.cacheIt(`${req.originalUrl}`, html);
+    res.send(html + `<p>${res.requestCounter}</p>`);
+  });
 });
 
 app.listen(PORT, () => {
